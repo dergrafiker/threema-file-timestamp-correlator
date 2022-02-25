@@ -4,6 +4,7 @@ import logging
 import os.path
 import shutil
 from datetime import datetime
+import time
 
 
 def init_logging(log_level):
@@ -115,4 +116,7 @@ file_collision_counter = {}
 logger = init_logging(logging.DEBUG)
 
 if __name__ == '__main__':
+    tic = time.perf_counter()
     main()
+    toc = time.perf_counter()
+    print(f"main finished in {toc - tic:0.4f} seconds")
