@@ -1,71 +1,90 @@
 import argparse
 import os.path
 import shutil
+import sys
 from datetime import datetime
 
 
-def getSubstringBetween(line, leftChar, rightChar):
-    startIndex = line.find(leftChar) + 1  # omit found char
-    endIndex = line.find(rightChar)
-    return line[startIndex:endIndex]
+def get_substring_between(line, left_char, right_char):
+    """looks for chars in a given line and returns the substring between them"""
+    start_index = line.find(left_char) + 1  # omit found char
+    end_index = line.find(right_char)
+    return line[start_index:end_index]
 
 
-def lineHasChars(line, leftChar, rightChar):
-    leftIndex = line.find(leftChar)
-    rightIndex = line.find(rightChar)
-    return leftIndex > 0 and rightIndex > 0
+def line_has_chars(line, left_char, right_char):
+    """looks if chars in a given line exist"""
+    left_index = line.find(left_char)
+    right_index = line.find(right_char)
+    return left_index > 0 and right_index > 0
 
 
-def handleFileNameCollision(fileCollisionCounter, copyTo, filesOutputLocation, dateConverted, fileExtension):
-    print(copyTo + " already exists")
-    counter = fileCollisionCounter.get(dateConverted)
+def handle_filename_collision(
+        file_collision_counter, copy_to, files_output_location, date_converted, file_extension):
+    """\
+        gets a counter for the given date_converted
+        and appends it to the filename (before the extension)
+    """
+    print(copy_to + " already exists")
+    counter = file_collision_counter.get(date_converted)
     if counter is None:
         counter = 1
     else:
         counter += 1
-    fileCollisionCounter[dateConverted] = counter
-    newCopyTo = filesOutputLocation + dateConverted + '-' + str(counter) + fileExtension
-    print("new filename => " + newCopyTo)
-    return newCopyTo
+    file_collision_counter[date_converted] = counter
+    new_copy_to = files_output_location + date_converted + '-' + str(counter) + file_extension
+    print("new filename => " + new_copy_to)
+    return new_copy_to
 
 
-parser = argparse.ArgumentParser(description='Rename files from a threema backup to the timestamp of the message that references them.')
-parser.add_argument('--rootPath', help='root path', required=True)
-args = parser.parse_args()
+def main():
+    """reads a message file line by line and renames found files to the timestamp of the message"""
+    parser = argparse.ArgumentParser(description=
+                                     'Rename files from a threema backup to the '
+                                     'timestamp of the message that references them.')
+    parser.add_argument('--root_path', help='root path', required=True)
+    args = parser.parse_args()
 
-rootPath = args.rootPath
-if not str(rootPath).endswith('/'):
-    rootPath = rootPath + '/'
-if not os.path.exists(rootPath):
-    print(rootPath + ' not found')
-    exit(-1)
-print("rootPath is " + rootPath)
+    root_path = args.rootPath
+    if not str(root_path).endswith('/'):
+        root_path = root_path + '/'
+    if not os.path.exists(root_path):
+        print(root_path + ' not found')
+        sys.exit(-1)
+    print("root_path is " + root_path)
 
-messageFile = rootPath + 'messages.txt'
-filesLocation = rootPath + 'files/'
-filesOutputLocation = rootPath + 'filesOut/'
-fileCollisionCounter = {}
+    message_file = root_path + 'messages.txt'
+    files_location = root_path + 'files/'
+    files_output_location = root_path + 'filesOut/'
+    file_collision_counter = {}
 
-with open(messageFile) as f:
-    for line in f:
-        if lineHasChars(line, '<', '>'):  # print only lines with a file
-            dateBaseString = getSubstringBetween(line, '[', ']')
-            dateConverted = datetime.strptime(dateBaseString, '%d/%m/%Y, %H:%M').strftime('%Y-%m-%dT%H%M')
+    with open(message_file, encoding="utf8", errors="surrogateescape") as file:
+        for line in file:
+            if line_has_chars(line, '<', '>'):  # print only lines with a file
+                date_base_string = get_substring_between(line, '[', ']')
+                date_converted = datetime.strptime(date_base_string, '%d/%m/%Y, %H:%M')\
+                    .strftime('%Y-%m-%dT%H%M')
 
-            fileBaseString = getSubstringBetween(line, '<', '>')
-            fileExtension = os.path.splitext(fileBaseString)[1]
+                file_base_string = get_substring_between(line, '<', '>')
+                file_extension = os.path.splitext(file_base_string)[1]
 
-            # debug output
-            print('the line has a file reference: ' + line)
-            print('date converted from [' + dateBaseString + '] to ' + dateConverted)
-            print('file found ' + fileBaseString + ' (extension is [' + fileExtension + '])')
+                # debug output
+                print('the line has a file reference: ' + line)
+                print('date converted from [' + date_base_string + '] to ' + date_converted)
+                print('file found ' + file_base_string + ' (extension is [' + file_extension + '])')
 
-            copyFrom = filesLocation + fileBaseString
-            copyTo = filesOutputLocation + dateConverted + fileExtension
+                copy_from = files_location + file_base_string
+                copy_to = files_output_location + date_converted + file_extension
 
-            if os.path.isfile(copyFrom):
-                if os.path.isfile(copyTo):  # destination exists - find a new filename
-                    copyTo = handleFileNameCollision(fileCollisionCounter, copyTo, filesOutputLocation, dateConverted, fileExtension)
-                print('copying ' + copyFrom + " => " + copyTo)
-                shutil.copy(copyFrom, copyTo)
-            print('\n')
+                if os.path.isfile(copy_from):
+                    if os.path.isfile(copy_to):  # dest exists - find a new filename
+                        copy_to = handle_filename_collision(
+                            file_collision_counter, copy_to,
+                            files_output_location, date_converted, file_extension)
+                    print('copying ' + copy_from + " => " + copy_to)
+                    shutil.copy(copy_from, copy_to)
+                print('\n')
+
+
+if __name__ == '__main__':
+    main()
