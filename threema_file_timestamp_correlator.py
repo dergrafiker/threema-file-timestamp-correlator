@@ -1,3 +1,4 @@
+"""reads a message file line by line and renames found files to the timestamp of the message"""
 import argparse
 import os.path
 import shutil
