@@ -34,11 +34,13 @@ parser.add_argument('--rootPath', help='root path', required=True)
 args = parser.parse_args()
 
 rootPath = args.rootPath
+if not str(rootPath).endswith('/'):
+    rootPath = rootPath + '/'
 print("rootPath is " + rootPath)
 
-messageFile = rootPath + '/messages.txt'
-filesLocation = rootPath + '/files/'
-filesOutputLocation = rootPath + '/filesOut/'
+messageFile = rootPath + 'messages.txt'
+filesLocation = rootPath + 'files/'
+filesOutputLocation = rootPath + 'filesOut/'
 my_dict = {}
 
 with open(messageFile) as f:
@@ -51,15 +53,16 @@ with open(messageFile) as f:
             fileExtension = os.path.splitext(fileBaseString)[1]
 
             # debug output
-            print(dateBaseString + " => " + dateConverted)
-            print(fileBaseString + " => " + fileExtension)
-            print(line)
+            print('the line has a file reference: ' + line)
+            print('date converted from [' + dateBaseString + '] to ' + dateConverted)
+            print('file found ' + fileBaseString + ' (extension is [' + fileExtension + '])')
 
             copyFrom = filesLocation + fileBaseString
             copyTo = filesOutputLocation + dateConverted + fileExtension
 
             if os.path.isfile(copyFrom):
-                print(copyFrom + " => " + copyTo)
                 if os.path.isfile(copyTo):  # destination exists - find a new filename
                     copyTo = handleFileNameCollision(my_dict, copyTo, filesOutputLocation, dateConverted, fileExtension)
+                print('copying ' + copyFrom + " => " + copyTo)
                 shutil.copy(copyFrom, copyTo)
+            print('\n')
