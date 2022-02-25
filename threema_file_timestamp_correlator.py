@@ -13,11 +13,9 @@ def get_substring_between(line, left_char, right_char):
     return line[start_index:end_index]
 
 
-def line_has_chars(line, left_char, right_char):
+def line_has_file(line):
     """looks if chars in a given line exist"""
-    left_index = line.find(left_char)
-    right_index = line.find(right_char)
-    return left_index > 0 and right_index > 0
+    return line.find('<') > 0 and line.find('>') > 0
 
 
 def handle_filename_collision(
@@ -61,7 +59,7 @@ def main():
 
     with open(message_file, encoding="utf8", errors="surrogateescape") as file:
         for line in file:
-            if line_has_chars(line, '<', '>'):  # print only lines with a file
+            if line_has_file(line):  # print only lines with a file
                 date_base_string = get_substring_between(line, '[', ']')
                 date_converted = datetime.strptime(date_base_string, '%d/%m/%Y, %H:%M')\
                     .strftime('%Y-%m-%dT%H%M')
