@@ -22,10 +22,6 @@ def init_logging(log_level):
     return local_logger
 
 
-file_collision_counter = {}
-logger = init_logging(logging.DEBUG)
-
-
 def get_substring_between(line, left_char, right_char):
     """looks for chars in a given line and returns the substring between them"""
     start_index = line.find(left_char) + 1  # omit found char
@@ -114,6 +110,9 @@ def main():
                     logger.info('copy %s => %s', copy_from, copy_to)
                     shutil.copy(copy_from, copy_to)
 
+
+file_collision_counter = {}
+logger = init_logging(logging.DEBUG)
 
 if __name__ == '__main__':
     main()
