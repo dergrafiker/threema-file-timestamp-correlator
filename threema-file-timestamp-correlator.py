@@ -16,14 +16,14 @@ def lineHasChars(line, leftChar, rightChar):
     return leftIndex > 0 and rightIndex > 0
 
 
-def handleFileNameCollision(my_dict, copyTo, filesOutputLocation, dateConverted, fileExtension):
+def handleFileNameCollision(fileCollisionCounter, copyTo, filesOutputLocation, dateConverted, fileExtension):
     print(copyTo + " already exists")
-    counter = my_dict.get(dateConverted)
+    counter = fileCollisionCounter.get(dateConverted)
     if counter is None:
         counter = 1
     else:
         counter += 1
-    my_dict[dateConverted] = counter
+    fileCollisionCounter[dateConverted] = counter
     newCopyTo = filesOutputLocation + dateConverted + '-' + str(counter) + fileExtension
     print("new filename => " + newCopyTo)
     return newCopyTo
@@ -41,7 +41,7 @@ print("rootPath is " + rootPath)
 messageFile = rootPath + 'messages.txt'
 filesLocation = rootPath + 'files/'
 filesOutputLocation = rootPath + 'filesOut/'
-my_dict = {}
+fileCollisionCounter = {}
 
 with open(messageFile) as f:
     for line in f:
@@ -62,7 +62,7 @@ with open(messageFile) as f:
 
             if os.path.isfile(copyFrom):
                 if os.path.isfile(copyTo):  # destination exists - find a new filename
-                    copyTo = handleFileNameCollision(my_dict, copyTo, filesOutputLocation, dateConverted, fileExtension)
+                    copyTo = handleFileNameCollision(fileCollisionCounter, copyTo, filesOutputLocation, dateConverted, fileExtension)
                 print('copying ' + copyFrom + " => " + copyTo)
                 shutil.copy(copyFrom, copyTo)
             print('\n')
