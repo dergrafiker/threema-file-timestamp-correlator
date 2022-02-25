@@ -36,6 +36,9 @@ args = parser.parse_args()
 rootPath = args.rootPath
 if not str(rootPath).endswith('/'):
     rootPath = rootPath + '/'
+if not os.path.exists(rootPath):
+    print(rootPath + ' not found')
+    exit(-1)
 print("rootPath is " + rootPath)
 
 messageFile = rootPath + 'messages.txt'
